@@ -12,10 +12,13 @@ import Chisel._
 
 class LipsiTester(dut: Lipsi) extends Tester(dut) {
 
-  for (i <- 0 until 16) {
-    step(1)
+  for (i <- 0 until 8) {
     peek(dut.io.pc)
     peek(dut.io.acc)
+    peek(dut.io.data)
+    peek(dut.mem.io.rdAddr)
+    peek(dut.stateReg)
+    step(1)
   }
 }
 
@@ -23,7 +26,7 @@ object LipsiTester {
   def main(args: Array[String]): Unit = {
     println("Testing Lipsi")
     chiselMainTest(Array("--genHarness", "--test", "--backend", "c",
-      "--compile", "--targetDir", "generated"),
+      "--compile", "--vcd", "--targetDir", "generated"),
       () => Module(new Lipsi())) {
         f => new LipsiTester(f)
       }

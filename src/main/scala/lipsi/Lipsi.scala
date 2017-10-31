@@ -14,26 +14,61 @@ class Lipsi extends Module {
   val io = new Bundle {
     val pc = UInt(OUTPUT, 8)
     val acc = UInt(OUTPUT, 8)
+    val data = UInt(OUTPUT, 8)
   }
 
   val regPC = Reg(init = UInt(0, 8))
   val regA = Reg(init = UInt(0, 8))
+  val regEnaA = Reg(init = Bool(false))
 
-  // In the original design the program shall be preloaded in the
-  // FPGA on-chip memory. We cannot express this in Chisel 2.
-  // Maybe this is possible in Chisel 3.
-  // The the memory input register will be fed from the regPC input mux.
-  val program = util.Assembler.getProgram()
-  val instr = program(regPC)
+  val regFunc = Reg(init = UInt(0, 3))
+  debug(regFunc)
+
+  val mem = Module(new Memory())
+
+  val selPC = Bool(true)
+  val selData = Bool(false)
+
+  val rdData = mem.io.rdData
+
+  val regInstr = Reg(next = rdData)
+
+  val rdAddr = Mux(selPC, Cat(UInt(0, 1), regPC + UInt(1)),
+    Cat(UInt(1, 1), Mux(selData, rdData, regA)))
+
+  val wrEna = Bool(true)
+  // Do we need a support of storing the PC?
+  // Probably, but it should be simple into a fixed register (15))
+  val isCall = Bool(false)
+
+  mem.io.rdAddr := rdAddr
+  mem.io.wrAddr := Cat(UInt(1, 1), rdData)
+  mem.io.wrData := Mux(isCall, regPC, regA)
+  mem.io.wrEna := wrEna
+
+  val updPC = Bool(true)
+
+  when(updPC) {
+    regPC := rdAddr
+  }
 
   val isLoad = Bool(false)
 
   val fetch :: execute :: load :: Nil = Enum(UInt(), 3)
   val stateReg = Reg(init = fetch)
+  debug(stateReg)
 
+  regEnaA := Bool(false)
+  debug(regEnaA)
   switch(stateReg) {
     is(fetch) {
       stateReg := execute
+      regFunc := rdData(6, 4)
+      // ALU imm
+      when(rdData(7, 4) === Bits(0xc)) {
+        regFunc := rdData(2, 0)
+        regEnaA := Bool(true)
+      }
     }
     is(execute) {
       when(isLoad) {
@@ -46,28 +81,23 @@ class Lipsi extends Module {
       stateReg := fetch
     }
   }
-  
-  val op = UInt(7)
-  
+
+  val op = rdData
+  val res = UInt()
+  res := UInt(0, 8)
+
   // val add :: sub :: adc :: sbb :: Nil = Enum(UInt(), 4)
-  switch(instr(1, 0)) {
-    is(Bits(0)) { regA := regA + op }
-    is(Bits(1)) { regA := regA - op }
+  switch(regFunc) {
+    is(Bits(0)) { res := regA + op }
+    is(Bits(1)) { res := regA - op }
+    is(Bits(7)) { res := op }
+  }
+  when (regEnaA) {
+    regA := res
   }
 
-  val rdAddr = UInt(3, 8)
-  val wrEna = Bool(true)
-  val wrData = UInt(5, 8)
-  val wrAddr = UInt(6, 8)
-
-  val mem = Mem(UInt(width = 8), 256, seqRead = true)
-  val rdData = mem(Reg(next = rdAddr))
-  when(wrEna) {
-    mem(wrAddr) := wrData
-  }
-
-  regPC := regPC + UInt(1)
-
+  when 
   io.pc := regPC
   io.acc := regA
+  io.data := rdData
 }
