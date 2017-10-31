@@ -11,3 +11,7 @@ hw:
 wave:
 	gtkwave generated/Lipsi.vcd Lipsi.gtkw
 
+# Danger zone, removes all unversioned files
+# Including the Eclipse project fiels generated with "sbt ecplipse"
+clean:
+	git clean -fd
