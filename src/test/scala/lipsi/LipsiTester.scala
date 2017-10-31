@@ -12,7 +12,7 @@ import Chisel._
 
 class LipsiTester(dut: Lipsi) extends Tester(dut) {
 
-  for (i <- 0 until 8) {
+  for (i <- 0 until lipsi.util.Assembler.prog.length+3) {
     peek(dut.io.pc)
     peek(dut.io.acc)
     peek(dut.io.data)

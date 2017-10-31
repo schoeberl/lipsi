@@ -86,18 +86,31 @@ class Lipsi extends Module {
   val res = UInt()
   res := UInt(0, 8)
 
-  // val add :: sub :: adc :: sbb :: Nil = Enum(UInt(), 4)
+  val add :: sub :: adc :: sbb :: and :: or :: xor :: ld :: Nil = Enum(UInt(), 8)
   switch(regFunc) {
-    is(Bits(0)) { res := regA + op }
-    is(Bits(1)) { res := regA - op }
-    is(Bits(7)) { res := op }
+    is(add) { res := regA + op }
+    is(sub) { res := regA - op }
+    is(adc) { res := regA + op } // TODO: adc
+    is(sbb) { res := regA - op } // TODO: sbb
+    is(and) { res := regA & op }
+    is(or) { res := regA | op }
+    is(xor) { res := regA ^ op }
+    is(ld) { res := op }
   }
-  when (regEnaA) {
+  when(regEnaA) {
     regA := res
   }
 
-  when 
+  when
   io.pc := regPC
   io.acc := regA
   io.data := rdData
+}
+
+object LipsiMain {
+  def main(args: Array[String]): Unit = {
+    println("Generating the Lipsi hardware")
+    chiselMain(Array("--backend", "v", "--targetDir", "generated"),
+      () => Module(new Lipsi()))
+  }
 }
