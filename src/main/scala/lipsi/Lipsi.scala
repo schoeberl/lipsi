@@ -26,39 +26,42 @@ class Lipsi(prog: String) extends Module {
 
   val mem = Module(new Memory(prog))
 
-  val selPC = Bool(true)
-  val selData = Bool(false)
+  //  val selPC = Bool(true)
+  //  val selData = Bool(false)
 
   val rdData = mem.io.rdData
 
   val regInstr = Reg(next = rdData)
 
-  val rdAddr = Mux(selPC, Cat(UInt(0, 1), regPC + UInt(1)),
-    Cat(UInt(1, 1), Mux(selData, rdData, regA)))
+  //  val rdAddr = Mux(selPC, Cat(UInt(0, 1), regPC + UInt(1)),
+  //    Cat(UInt(1, 1), Mux(selData, rdData, regA)))
 
   // Do we need a support of storing the PC?
   // Probably, but it should be simple into a fixed register (15))
   val isCall = Bool(false)
-  
+
   val wrEna = Bool()
   val wrAddr = UInt()
-
+  val rdAddr = UInt()
+  val updPC = Bool()
 
   mem.io.rdAddr := rdAddr
-  mem.io.wrAddr := Cat(UInt(1, 1), wrAddr)
+  mem.io.wrAddr := Cat(UInt(1, 1), wrAddr(7, 0))
   mem.io.wrData := Mux(isCall, regPC, regA)
   mem.io.wrEna := wrEna
 
-  val updPC = Bool(true)
-
-  when(updPC) {
-    regPC := rdAddr
-  }
-
   val isLoad = Bool(false)
+
+  val nextPC = regPC + UInt(1)
   // defaults
   wrEna := Bool(false)
   wrAddr := rdData
+  rdAddr := Cat(UInt(0, 1), nextPC)
+  updPC := Bool(true)
+
+  when(updPC) {
+    regPC := nextPC
+  }
 
   val fetch :: execute :: load :: exit :: Nil = Enum(UInt(), 4)
   val stateReg = Reg(init = fetch)
@@ -72,6 +75,14 @@ class Lipsi(prog: String) extends Module {
     is(fetch) {
       stateReg := execute
       regFunc := rdData(6, 4)
+      // ALU register
+      when(rdData(7) === Bits(0)) {
+        updPC := Bool(false)
+        regFunc := rdData(6, 4)
+        regEnaA := Bool(true)
+        rdAddr(8, 4) := UInt(0x10)
+        rdAddr(3, 0) := rdData
+      }
       // ALU imm
       when(rdData(7, 4) === Bits(0xc)) {
         regFunc := rdData(2, 0)
@@ -81,7 +92,7 @@ class Lipsi(prog: String) extends Module {
       when(rdData(7, 4) === Bits(0x8)) {
         wrAddr(7, 4) := UInt(0)
         wrEna := Bool(true)
-        stateReg := fetch 
+        stateReg := fetch
       }
       // exit (for the tester)
       when(rdData === Bits(0xff)) {
@@ -98,7 +109,7 @@ class Lipsi(prog: String) extends Module {
     is(load) {
       stateReg := fetch
     }
-    is (exit) {
+    is(exit) {
       regExit := Bool(true)
     }
   }

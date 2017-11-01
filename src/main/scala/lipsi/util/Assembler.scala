@@ -68,7 +68,16 @@ object Assembler {
       val tokens = line.trim.split(" ")
       // println(s"length: ${tokens.length}")
       // tokens.foreach(println)
-      val x = tokens(0) match {
+      val instr = tokens(0) match {
+        case "#" => // comment
+        case "add" => 0x00 + regNumber(tokens(1))
+        case "sub" => 0x10 + regNumber(tokens(1))
+        case "adc" => 0x20 + regNumber(tokens(1))
+        case "sbb" => 0x30 + regNumber(tokens(1))
+        case "and" => 0x40 + regNumber(tokens(1))
+        case "or" => 0x50 + regNumber(tokens(1))
+        case "xor" => 0x60 + regNumber(tokens(1))
+        case "ld" => 0x70 + regNumber(tokens(1))
         case "addi" => (0xc0, toInt(tokens(1)))
         case "subi" => (0xc1, toInt(tokens(1)))
         case "adci" => (0xc2, toInt(tokens(1)))
@@ -79,10 +88,12 @@ object Assembler {
         case "ldi" => (0xc7, toInt(tokens(1)))
         case "st" => 0x80 + regNumber(tokens(1))
         case "exit" => (0xff)
-        case _ => // println("Nothing")
+        case "" => println("Empty line")
+        case t: String => throw new Exception("Assembler error: unknown instruction")
+        case _ => throw new Exception("Assembler error")
       }
       
-      x match {
+      instr match {
         case (a: Int) => program = a :: program
         case (a: Int, b: Int) => {
           program = a :: program
@@ -90,7 +101,7 @@ object Assembler {
         }
         case _ => // println("Something else")
       }
-      println(x)
+      println(instr)
     }
     val finalProg = program.reverse.toArray
     println(s"The program:")
