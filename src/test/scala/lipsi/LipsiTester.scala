@@ -12,14 +12,17 @@ import Chisel._
 
 class LipsiTester(dut: Lipsi) extends Tester(dut) {
 
-  for (i <- 0 until lipsi.util.Assembler.prog.length+3) {
-    peek(dut.io.pc)
-    peek(dut.io.acc)
+  var run = true
+  while(run) {
+    peek(dut.regPC)
+    peek(dut.regA)
     peek(dut.io.data)
     peek(dut.mem.io.rdAddr)
     peek(dut.stateReg)
     step(1)
+    run = peek(dut.regExit) == 0
   }
+  expect(dut.io.acc, 0, "Accu shall be zero at the end of a test case.\n")
 }
 
 object LipsiTester {
@@ -27,7 +30,7 @@ object LipsiTester {
     println("Testing Lipsi")
     chiselMainTest(Array("--genHarness", "--test", "--backend", "c",
       "--compile", "--vcd", "--targetDir", "generated"),
-      () => Module(new Lipsi())) {
+      () => Module(new Lipsi(args(0)))) {
         f => new LipsiTester(f)
       }
   }

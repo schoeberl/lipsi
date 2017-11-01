@@ -19,7 +19,7 @@ import Chisel._
  * As we cannot express initialized memory in Chisel (yet) we have a multiplexer between
  * memory and the instruction ROM table. Shall be substituted by a BlackBox and generated VHDL or Verilog.
  */
-class Memory extends Module {
+class Memory(prog: String) extends Module {
   val io = new Bundle {
     val rdAddr = UInt(INPUT, 9)
     val rdData = UInt(OUTPUT, 8)
@@ -31,7 +31,7 @@ class Memory extends Module {
   val regPC = Reg(init = UInt(0, 8))
   val regRdAddr = Reg(init = UInt(0, 9), next = io.rdAddr)
 
-  val program = util.Assembler.getProgram()
+  val program = util.Assembler.getProgram(prog)
   val instr = program(regRdAddr(7, 0))
 
   val mem = Mem(UInt(width = 8), 256, seqRead = true)

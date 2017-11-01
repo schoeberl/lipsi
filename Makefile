@@ -2,11 +2,14 @@
 
 SBT = sbt
 
+# the program
+APP ?= asm/test.asm
+
 all:
-	$(SBT) "test:runMain lipsi.LipsiTester"
+	$(SBT) "test:runMain lipsi.LipsiTester $(APP)"
 
 hw:
-	$(SBT) "runMain lipsi.LipsiMain"
+	$(SBT) "runMain lipsi.LipsiMain $(APP)"
 
 wave:
 	gtkwave generated/Lipsi.vcd Lipsi.gtkw

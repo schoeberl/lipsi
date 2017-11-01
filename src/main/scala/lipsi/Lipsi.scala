@@ -10,7 +10,7 @@ package lipsi
 
 import Chisel._
 
-class Lipsi extends Module {
+class Lipsi(prog: String) extends Module {
   val io = new Bundle {
     val pc = UInt(OUTPUT, 8)
     val acc = UInt(OUTPUT, 8)
@@ -24,7 +24,7 @@ class Lipsi extends Module {
   val regFunc = Reg(init = UInt(0, 3))
   debug(regFunc)
 
-  val mem = Module(new Memory())
+  val mem = Module(new Memory(prog))
 
   val selPC = Bool(true)
   val selData = Bool(false)
@@ -54,9 +54,11 @@ class Lipsi extends Module {
 
   val isLoad = Bool(false)
 
-  val fetch :: execute :: load :: Nil = Enum(UInt(), 3)
+  val fetch :: execute :: load :: exit :: Nil = Enum(UInt(), 4)
   val stateReg = Reg(init = fetch)
   debug(stateReg)
+  val regExit = Reg(init = Bool(false))
+  debug(regExit)
 
   regEnaA := Bool(false)
   debug(regEnaA)
@@ -69,6 +71,10 @@ class Lipsi extends Module {
         regFunc := rdData(2, 0)
         regEnaA := Bool(true)
       }
+      // exit (for the tester)
+      when(rdData === Bits(0xff)) {
+        stateReg := exit
+      }
     }
     is(execute) {
       when(isLoad) {
@@ -79,6 +85,9 @@ class Lipsi extends Module {
     }
     is(load) {
       stateReg := fetch
+    }
+    is (exit) {
+      regExit := Bool(true)
     }
   }
 
@@ -101,7 +110,6 @@ class Lipsi extends Module {
     regA := res
   }
 
-  when
   io.pc := regPC
   io.acc := regA
   io.data := rdData
@@ -111,6 +119,6 @@ object LipsiMain {
   def main(args: Array[String]): Unit = {
     println("Generating the Lipsi hardware")
     chiselMain(Array("--backend", "v", "--targetDir", "generated"),
-      () => Module(new Lipsi()))
+      () => Module(new Lipsi(args(0))))
   }
 }

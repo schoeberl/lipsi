@@ -44,10 +44,10 @@ object Assembler {
 
   def getProgramFix() = Vec(prog.map(Bits(_)))
 
-  def getProgram() = Vec(assemble().map(Bits(_)))
+  def getProgram(prog: String) = Vec(assemble(prog).map(Bits(_)))
 
-  def assemble() = {
-    val source = Source.fromFile("asm/test.asm")
+  def assemble(prog: String) = {
+    val source = Source.fromFile(prog)
     var program = List[Int]()
     
     def toInt(s: String): Int = {
@@ -61,8 +61,8 @@ object Assembler {
     for (line <- source.getLines()) {
       println(line)
       val tokens = line.trim.split(" ")
-      println(s"length: ${tokens.length}")
-      tokens.foreach(println)
+      // println(s"length: ${tokens.length}")
+      // tokens.foreach(println)
       val x = tokens(0) match {
         case "addi" => (0xc0, toInt(tokens(1)))
         case "subi" => (0xc1, toInt(tokens(1)))
@@ -73,7 +73,7 @@ object Assembler {
         case "xori" => (0xc6, toInt(tokens(1)))
         case "ldi" => (0xc7, toInt(tokens(1)))
         case "exit" => (0xff)
-        case _ => println("Nothing")
+        case _ => // println("Nothing")
       }
       
       x match {
@@ -82,7 +82,7 @@ object Assembler {
           program = a :: program
           program = b :: program
         }
-        case _ => println("Something else")
+        case _ => // println("Something else")
       }
       println(x)
     }
