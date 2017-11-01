@@ -36,13 +36,16 @@ class Lipsi(prog: String) extends Module {
   val rdAddr = Mux(selPC, Cat(UInt(0, 1), regPC + UInt(1)),
     Cat(UInt(1, 1), Mux(selData, rdData, regA)))
 
-  val wrEna = Bool(true)
   // Do we need a support of storing the PC?
   // Probably, but it should be simple into a fixed register (15))
   val isCall = Bool(false)
+  
+  val wrEna = Bool()
+  val wrAddr = UInt()
+
 
   mem.io.rdAddr := rdAddr
-  mem.io.wrAddr := Cat(UInt(1, 1), rdData)
+  mem.io.wrAddr := Cat(UInt(1, 1), wrAddr)
   mem.io.wrData := Mux(isCall, regPC, regA)
   mem.io.wrEna := wrEna
 
@@ -53,6 +56,9 @@ class Lipsi(prog: String) extends Module {
   }
 
   val isLoad = Bool(false)
+  // defaults
+  wrEna := Bool(false)
+  wrAddr := rdData
 
   val fetch :: execute :: load :: exit :: Nil = Enum(UInt(), 4)
   val stateReg = Reg(init = fetch)
@@ -70,6 +76,12 @@ class Lipsi(prog: String) extends Module {
       when(rdData(7, 4) === Bits(0xc)) {
         regFunc := rdData(2, 0)
         regEnaA := Bool(true)
+      }
+      // st rx, is just a single cycle
+      when(rdData(7, 4) === Bits(0x8)) {
+        wrAddr(7, 4) := UInt(0)
+        wrEna := Bool(true)
+        stateReg := fetch 
       }
       // exit (for the tester)
       when(rdData === Bits(0xff)) {

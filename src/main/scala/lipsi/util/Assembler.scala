@@ -58,6 +58,11 @@ object Assembler {
       }
     }
     
+    def regNumber(s: String): Int = {
+      assert(s.startsWith("r"))
+      s.substring(1).toInt
+    }
+    
     for (line <- source.getLines()) {
       println(line)
       val tokens = line.trim.split(" ")
@@ -72,6 +77,7 @@ object Assembler {
         case "ori" => (0xc5, toInt(tokens(1)))
         case "xori" => (0xc6, toInt(tokens(1)))
         case "ldi" => (0xc7, toInt(tokens(1)))
+        case "st" => 0x80 + regNumber(tokens(1))
         case "exit" => (0xff)
         case _ => // println("Nothing")
       }
