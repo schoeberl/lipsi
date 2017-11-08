@@ -10,6 +10,27 @@ package lipsi
 
 import Chisel._
 
+/*
+
+Instruction encoding (plus timing):
+
+0fff rrrr ALU register (2 cc)
+1000 rrrr st rx (1 cc)
+1001 rrrr brl rx
+1010 rrrr ldind (rx)
+1011 rrrr stind (rx) (2 cc)
+1100 -fff + nnnn nnnn ALU imm (2 cc)
+1101 -ccc + aaaa aaaa br, br cond
+1110 --ff ALU shift
+1111 aaaa IO
+1111 1111 exit for the tester
+
+ALU function:
+
+add, sub, adc, sbb, and, or, xor, ld
+
+*/
+
 class Lipsi(prog: String) extends Module {
   val io = new Bundle {
     val pc = UInt(OUTPUT, 8)
@@ -50,7 +71,7 @@ class Lipsi(prog: String) extends Module {
   mem.io.wrData := Mux(isCall, regPC, regA)
   mem.io.wrEna := wrEna
 
-  val isLoad = Bool(false)
+  // val isLoad = Bool(false)
 
   val nextPC = regPC + UInt(1)
   // defaults
@@ -63,7 +84,7 @@ class Lipsi(prog: String) extends Module {
     regPC := nextPC
   }
 
-  val fetch :: execute :: load :: exit :: Nil = Enum(UInt(), 4)
+  val fetch :: execute :: stind :: ldind1 :: ldind2 :: exit :: Nil = Enum(UInt(), 6)
   val stateReg = Reg(init = fetch)
   debug(stateReg)
   val regExit = Reg(init = Bool(false))
@@ -94,19 +115,41 @@ class Lipsi(prog: String) extends Module {
         wrEna := Bool(true)
         stateReg := fetch
       }
+      // ldind
+      when(rdData(7, 4) === Bits(0xa)) {
+        updPC := Bool(false)
+        rdAddr(8, 4) := UInt(0x10)
+        rdAddr(3, 0) := rdData
+        stateReg := ldind1
+      }
+      // stind
+      when(rdData(7, 4) === Bits(0xb)) {
+        updPC := Bool(false)
+        rdAddr(8, 4) := UInt(0x10)
+        rdAddr(3, 0) := rdData
+        stateReg := stind
+      }
       // exit (for the tester)
       when(rdData === Bits(0xff)) {
         stateReg := exit
       }
     }
-    is(execute) {
-      when(isLoad) {
-        stateReg := load
-      }.otherwise {
-        stateReg := fetch
-      }
+    is(stind) {
+      wrEna := Bool(true)
+      stateReg := fetch
     }
-    is(load) {
+    is(execute) {
+      stateReg := fetch
+    }
+    is(ldind1) {
+      updPC := Bool(false)
+      regFunc := Bits(7)
+      regEnaA := Bool(true)
+      rdAddr(8) := UInt(0x1)
+      rdAddr(7, 0) := rdData
+      stateReg := ldind2
+    }
+    is(ldind2) {
       stateReg := fetch
     }
     is(exit) {

@@ -1,5 +1,5 @@
 # 
-# general test program
+# Test indirect load and store
 #
 
 ldi 0x73

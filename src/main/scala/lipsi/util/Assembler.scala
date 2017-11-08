@@ -9,27 +9,6 @@ package lipsi.util
 import scala.io.Source
 import Chisel._
 
-/*
-
-Instruction encoding:
-
-0fff rrrr ALU register
-1000 rrrr st rx
-1001 rrrr brl rx
-1010 rrrr ld (rx)
-1011 rrrr st (rx)
-1100 -fff + nnnn nnnn ALU imm
-1101 -ccc + aaaa aaaa br, br cond
-1110 --ff ALU shift
-1111 aaaa IO
-1111 1111 exit for the tester
-
-ALU function:
-
-add, sub, adc, sbb, and, or, xor, ld
-
-*/
-
 object Assembler {
 
   val prog = Array[Int](
@@ -63,6 +42,12 @@ object Assembler {
       s.substring(1).toInt
     }
     
+    def regIndirect(s: String): Int = {
+      assert(s.startsWith("(r"))
+      assert(s.endsWith(")"))
+      s.substring(2, s.length-1).toInt
+    }
+    
     for (line <- source.getLines()) {
       println(line)
       val tokens = line.trim.split(" ")
@@ -87,6 +72,8 @@ object Assembler {
         case "xori" => (0xc6, toInt(tokens(1)))
         case "ldi" => (0xc7, toInt(tokens(1)))
         case "st" => 0x80 + regNumber(tokens(1))
+        case "ldind" => 0xa0 + regIndirect(tokens(1))
+        case "stind" => 0xb0 + regIndirect(tokens(1))
         case "exit" => (0xff)
         case "" => println("Empty line")
         case t: String => throw new Exception("Assembler error: unknown instruction")
