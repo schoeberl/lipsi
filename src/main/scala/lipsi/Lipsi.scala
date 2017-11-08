@@ -38,12 +38,12 @@ class Lipsi(prog: String) extends Module {
     val data = UInt(OUTPUT, 8)
   }
 
-  val regPC = Reg(init = UInt(0, 8))
-  val regA = Reg(init = UInt(0, 8))
-  val regEnaA = Reg(init = Bool(false))
+  val pcReg = Reg(init = UInt(0, 8))
+  val accuReg = Reg(init = UInt(0, 8))
+  val enaAccuReg = Reg(init = Bool(false))
 
-  val regFunc = Reg(init = UInt(0, 3))
-  debug(regFunc)
+  val funcReg = Reg(init = UInt(0, 3))
+  debug(funcReg)
 
   val mem = Module(new Memory(prog))
 
@@ -68,12 +68,12 @@ class Lipsi(prog: String) extends Module {
 
   mem.io.rdAddr := rdAddr
   mem.io.wrAddr := Cat(UInt(1, 1), wrAddr(7, 0))
-  mem.io.wrData := Mux(isCall, regPC, regA)
+  mem.io.wrData := Mux(isCall, pcReg, accuReg)
   mem.io.wrEna := wrEna
 
   // val isLoad = Bool(false)
 
-  val nextPC = regPC + UInt(1)
+  val nextPC = pcReg + UInt(1)
   // defaults
   wrEna := Bool(false)
   wrAddr := rdData
@@ -81,33 +81,33 @@ class Lipsi(prog: String) extends Module {
   updPC := Bool(true)
 
   when(updPC) {
-    regPC := nextPC
+    pcReg := nextPC
   }
 
   val fetch :: execute :: stind :: ldind1 :: ldind2 :: exit :: Nil = Enum(UInt(), 6)
   val stateReg = Reg(init = fetch)
   debug(stateReg)
-  val regExit = Reg(init = Bool(false))
-  debug(regExit)
+  val exitReg = Reg(init = Bool(false))
+  debug(exitReg)
 
-  regEnaA := Bool(false)
-  debug(regEnaA)
+  enaAccuReg := Bool(false)
+  debug(enaAccuReg)
   switch(stateReg) {
     is(fetch) {
       stateReg := execute
-      regFunc := rdData(6, 4)
+      funcReg := rdData(6, 4)
       // ALU register
       when(rdData(7) === Bits(0)) {
         updPC := Bool(false)
-        regFunc := rdData(6, 4)
-        regEnaA := Bool(true)
+        funcReg := rdData(6, 4)
+        enaAccuReg := Bool(true)
         rdAddr(8, 4) := UInt(0x10)
         rdAddr(3, 0) := rdData
       }
       // ALU imm
       when(rdData(7, 4) === Bits(0xc)) {
-        regFunc := rdData(2, 0)
-        regEnaA := Bool(true)
+        funcReg := rdData(2, 0)
+        enaAccuReg := Bool(true)
       }
       // st rx, is just a single cycle
       when(rdData(7, 4) === Bits(0x8)) {
@@ -143,8 +143,8 @@ class Lipsi(prog: String) extends Module {
     }
     is(ldind1) {
       updPC := Bool(false)
-      regFunc := Bits(7)
-      regEnaA := Bool(true)
+      funcReg := Bits(7)
+      enaAccuReg := Bool(true)
       rdAddr(8) := UInt(0x1)
       rdAddr(7, 0) := rdData
       stateReg := ldind2
@@ -153,7 +153,7 @@ class Lipsi(prog: String) extends Module {
       stateReg := fetch
     }
     is(exit) {
-      regExit := Bool(true)
+      exitReg := Bool(true)
     }
   }
 
@@ -162,22 +162,22 @@ class Lipsi(prog: String) extends Module {
   res := UInt(0, 8)
 
   val add :: sub :: adc :: sbb :: and :: or :: xor :: ld :: Nil = Enum(UInt(), 8)
-  switch(regFunc) {
-    is(add) { res := regA + op }
-    is(sub) { res := regA - op }
-    is(adc) { res := regA + op } // TODO: adc
-    is(sbb) { res := regA - op } // TODO: sbb
-    is(and) { res := regA & op }
-    is(or) { res := regA | op }
-    is(xor) { res := regA ^ op }
+  switch(funcReg) {
+    is(add) { res := accuReg + op }
+    is(sub) { res := accuReg - op }
+    is(adc) { res := accuReg + op } // TODO: adc
+    is(sbb) { res := accuReg - op } // TODO: sbb
+    is(and) { res := accuReg & op }
+    is(or) { res := accuReg | op }
+    is(xor) { res := accuReg ^ op }
     is(ld) { res := op }
   }
-  when(regEnaA) {
-    regA := res
+  when(enaAccuReg) {
+    accuReg := res
   }
 
-  io.pc := regPC
-  io.acc := regA
+  io.pc := pcReg
+  io.acc := accuReg
   io.data := rdData
 }
 

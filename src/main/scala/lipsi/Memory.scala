@@ -29,17 +29,17 @@ class Memory(prog: String) extends Module {
   }
 
   val regPC = Reg(init = UInt(0, 8))
-  val regRdAddr = Reg(init = UInt(0, 9), next = io.rdAddr)
+  val rdAddrReg = Reg(init = UInt(0, 9), next = io.rdAddr)
 
   val program = util.Assembler.getProgram(prog)
-  val instr = program(regRdAddr(7, 0))
+  val instr = program(rdAddrReg(7, 0))
 
   val mem = Mem(UInt(width = 8), 256, seqRead = true)
-  val data = mem(regRdAddr(7, 0))
+  val data = mem(rdAddrReg(7, 0))
   when(io.wrEna) {
     mem(io.wrAddr) := io.wrData
   }
   
   // Output MUX for now
-  io.rdData := Mux(regRdAddr(8), data, instr)
+  io.rdData := Mux(rdAddrReg(8), data, instr)
 }

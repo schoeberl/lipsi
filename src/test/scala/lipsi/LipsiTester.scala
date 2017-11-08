@@ -15,14 +15,14 @@ class LipsiTester(dut: Lipsi) extends Tester(dut) {
   var run = true
   var maxInstructions = 30
   while(run) {
-    peek(dut.regPC)
-    peek(dut.regA)
+    peek(dut.pcReg)
+    peek(dut.accuReg)
     peek(dut.io.data)
     peek(dut.mem.io.rdAddr)
     peek(dut.stateReg)
     step(1)
     maxInstructions -= 1
-    run = peek(dut.regExit) == 0 && maxInstructions > 0
+    run = peek(dut.exitReg) == 0 && maxInstructions > 0
   }
   expect(dut.io.acc, 0, "Accu shall be zero at the end of a test case.\n")
 }
