@@ -22,6 +22,7 @@ class LipsiSim(asm: String) {
 
   var accuNext = 0
   var delayUpdate = false
+  var noPcIncr = false
 
   var run = true
 
@@ -48,15 +49,17 @@ class LipsiSim(asm: String) {
     } else {
       val instr = mem(pc)
       if ((instr & 0x80) == 0) {
-
+        accuNext = alu((instr >> 4) & 0xf, mem((instr & 0x0f) + 256))
+        delayUpdate = true
+        noPcIncr = true
       } else {
         ((instr >> 4) & 0x7) match {
-          case 0x0 =>
+          case 0x0 => mem((instr & 0x0f) + 256) = accu
           case 0x1 =>
           case 0x2 =>
           case 0x3 =>
           case 0x4 => {
-            accuNext = alu((instr & 0x07), mem(pc + 1))
+            accuNext = alu(instr & 0x07, mem(pc + 1))
             delayUpdate = true
           }
           case 0x5 =>
@@ -67,7 +70,12 @@ class LipsiSim(asm: String) {
 
     }
 
-    pc += 1
+    if (noPcIncr) {
+      noPcIncr = false
+    } else {
+      pc += 1
+
+    }
     run = pc < prog.length
   }
 }
