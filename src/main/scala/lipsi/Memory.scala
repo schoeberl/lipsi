@@ -31,7 +31,7 @@ class Memory(prog: String) extends Module {
   val regPC = Reg(init = UInt(0, 8))
   val rdAddrReg = Reg(init = UInt(0, 9), next = io.rdAddr)
 
-  val program = util.Assembler.getProgram(prog)
+  val program = Vec(util.Assembler.getProgram(prog).map(Bits(_)))
   val instr = program(rdAddrReg(7, 0))
 
   val mem = Mem(UInt(width = 8), 256, seqRead = true)

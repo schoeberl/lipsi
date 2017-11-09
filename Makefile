@@ -11,6 +11,12 @@ lipsi_test:
 hw:
 	$(SBT) "runMain lipsi.LipsiMain $(APP)"
 
+sim:
+	$(SBT) "test:runMain lipsi.sim.LipsiSim $(APP)"
+
+cosim:
+	$(SBT) "test:runMain lipsi.LipsiCoSim $(APP)"
+
 wave:
 	gtkwave generated/Lipsi.vcd Lipsi.gtkw
 

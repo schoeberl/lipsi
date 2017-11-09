@@ -3,7 +3,7 @@
  * Author: Martin Schoeberl (martin@jopdesign.com)
  * License: Simplified BSD License
  * 
- * Lipsi, a very minimalistic processor.
+ * Lipsi, a very tiny processor.
  */
 
 package lipsi

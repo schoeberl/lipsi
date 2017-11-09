@@ -7,7 +7,7 @@
 package lipsi.util
 
 import scala.io.Source
-import Chisel._
+//import Chisel._
 
 object Assembler {
 
@@ -21,14 +21,14 @@ object Assembler {
     0x82, // st r2
     0x00)
 
-  def getProgramFix() = Vec(prog.map(Bits(_)))
+  def getProgramFix() = prog
 
-  def getProgram(prog: String) = Vec(assemble(prog).map(Bits(_)))
+  def getProgram(prog: String) = assemble(prog)
 
   def assemble(prog: String) = {
     val source = Source.fromFile(prog)
     var program = List[Int]()
-    
+
     def toInt(s: String): Int = {
       if (s.startsWith("0x")) {
         Integer.parseInt(s.substring(2), 16)
@@ -36,18 +36,18 @@ object Assembler {
         Integer.parseInt(s)
       }
     }
-    
+
     def regNumber(s: String): Int = {
       assert(s.startsWith("r"))
       s.substring(1).toInt
     }
-    
+
     def regIndirect(s: String): Int = {
       assert(s.startsWith("(r"))
       assert(s.endsWith(")"))
-      s.substring(2, s.length-1).toInt
+      s.substring(2, s.length - 1).toInt
     }
-    
+
     for (line <- source.getLines()) {
       println(line)
       val tokens = line.trim.split(" ")
@@ -75,11 +75,12 @@ object Assembler {
         case "ldind" => 0xa0 + regIndirect(tokens(1))
         case "stind" => 0xb0 + regIndirect(tokens(1))
         case "exit" => (0xff)
-        case "" => println("Empty line")
+        case "" => // println("Empty line")
         case t: String => throw new Exception("Assembler error: unknown instruction")
         case _ => throw new Exception("Assembler error")
       }
-      
+      // println(instr)
+
       instr match {
         case (a: Int) => program = a :: program
         case (a: Int, b: Int) => {
@@ -88,7 +89,6 @@ object Assembler {
         }
         case _ => // println("Something else")
       }
-      println(instr)
     }
     val finalProg = program.reverse.toArray
     println(s"The program:")
