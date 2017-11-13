@@ -17,7 +17,7 @@ Instruction encoding (plus timing):
 0fff rrrr ALU register (2 cc)
 1000 rrrr st rx (1 cc)
 1001 rrrr brl rx
-1010 rrrr ldind (rx)
+1010 rrrr ldind (rx) (3 cc)
 1011 rrrr stind (rx) (2 cc)
 1100 -fff + nnnn nnnn ALU imm (2 cc)
 1101 -ccc + aaaa aaaa br, br cond
