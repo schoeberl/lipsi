@@ -17,14 +17,14 @@ class LipsiTester(dut: Lipsi) extends Tester(dut) {
   while(run) {
     peek(dut.pcReg)
     peek(dut.accuReg)
-    peek(dut.io.data)
     peek(dut.mem.io.rdAddr)
     peek(dut.stateReg)
     step(1)
     maxInstructions -= 1
     run = peek(dut.exitReg) == 0 && maxInstructions > 0
+    // poke(dut.io.din, maxInstructions)
   }
-  expect(dut.io.acc, 0, "Accu shall be zero at the end of a test case.\n")
+  expect(dut.accuReg, 0, "Accu shall be zero at the end of a test case.\n")
 }
 
 object LipsiTester {

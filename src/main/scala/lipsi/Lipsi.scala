@@ -20,11 +20,11 @@ Instruction encoding (plus timing):
 1010 rrrr ldind (rx) (3 cc)
 1011 rrrr stind (rx) (2 cc)
 1100 -fff + nnnn nnnn ALU imm (2 cc)
-1101 --00 + aaaa aaaa br
+1101 --00 + aaaa aaaa br (2 cc)
 1101 --10 + aaaa aaaa brz
 1101 --11 + aaaa aaaa brnz
 1110 --ff ALU shift
-1111 aaaa IO
+1111 aaaa IO (1 cc)
 1111 1111 exit for the tester
 
 ALU function:
@@ -35,9 +35,8 @@ add, sub, adc, sbb, and, or, xor, ld
 
 class Lipsi(prog: String) extends Module {
   val io = new Bundle {
-    val pc = UInt(OUTPUT, 8)
-    val acc = UInt(OUTPUT, 8)
-    val data = UInt(OUTPUT, 8)
+    val dout = UInt(OUTPUT, 8)
+    val din = UInt(INPUT, 8)
   }
 
   val pcReg = Reg(init = UInt(0, 8))
@@ -48,6 +47,10 @@ class Lipsi(prog: String) extends Module {
 
   val funcReg = Reg(init = UInt(0, 3))
   debug(funcReg)
+
+  // IO register
+  val outReg = Reg(init = UInt(0, 8))
+  val enaIoReg = Reg(init = Bool(false))
 
   val mem = Module(new Memory(prog))
 
@@ -109,6 +112,7 @@ class Lipsi(prog: String) extends Module {
 
   enaAccuReg := Bool(false)
   enaPcReg := Bool(false)
+  enaIoReg := Bool(false)
 
   debug(enaAccuReg)
   switch(stateReg) {
@@ -153,6 +157,12 @@ class Lipsi(prog: String) extends Module {
         when(doBranch) {
           enaPcReg := Bool(true)
         }
+      }
+      // IO
+      when(rdData === Bits(0xf0)) {
+        outReg := accuReg
+        enaIoReg := Bool(true)
+        stateReg := fetch
       }
       // exit (for the tester)
       when(rdData === Bits(0xff)) {
@@ -200,16 +210,31 @@ class Lipsi(prog: String) extends Module {
   when(enaAccuReg) {
     accuReg := res
   }
+  when(enaIoReg) {
+    accuReg := io.din
+  }
 
-  io.pc := pcReg
-  io.acc := accuReg
-  io.data := rdData
+  io.dout := outReg
+}
+
+class LipsiTop(prog: String) extends Module {
+  val io = new Bundle {
+    val dout = UInt(OUTPUT, 8)
+    val din = UInt(INPUT, 8)
+  }
+  
+  val resetRegs = Reg(next = !Reg(next = reset))
+  
+  val lipsi = Module(new Lipsi(prog))
+  
+  lipsi.reset := resetRegs
+  io <> lipsi.io
 }
 
 object LipsiMain {
   def main(args: Array[String]): Unit = {
     println("Generating the Lipsi hardware")
     chiselMain(Array("--backend", "v", "--targetDir", "generated"),
-      () => Module(new Lipsi(args(0))))
+      () => Module(new LipsiTop(args(0))))
   }
 }

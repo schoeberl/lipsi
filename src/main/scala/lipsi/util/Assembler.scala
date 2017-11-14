@@ -59,7 +59,7 @@ object Assembler {
     }
 
     for (line <- source.getLines()) {
-      println(line)
+      if (pass2) println(line)
       val tokens = line.trim.split(" ")
       // println(s"length: ${tokens.length}")
       // tokens.foreach(println)
@@ -89,6 +89,7 @@ object Assembler {
         case "br" => (0xd0, if (pass2) symbols(tokens(1)) else 0)
         case "brz" => (0xd2, if (pass2) symbols(tokens(1)) else 0)
         case "brnz" => (0xd3, if (pass2) symbols(tokens(1)) else 0)
+        case "io" => 0xf0 + toInt(tokens(1))
         case "exit" => (0xff)
         case "" => // println("Empty line")
         case t: String => throw new Exception("Assembler error: unknown instruction")
@@ -110,9 +111,11 @@ object Assembler {
       }
     }
     val finalProg = program.reverse.toArray
-    println(s"The program:")
-    finalProg.foreach(printf("0x%02x ", _))
-    println()
+    if (pass2) {
+      println(s"The program:")
+      finalProg.foreach(printf("0x%02x ", _))
+      println()
+    }
     finalProg
   }
 }

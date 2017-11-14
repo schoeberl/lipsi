@@ -1,10 +1,10 @@
 [*]
 [*] GTKWave Analyzer v3.3.73 (w)1999-2016 BSI
-[*] Wed Nov  1 10:08:04 2017
+[*] Tue Nov 14 12:06:46 2017
 [*]
 [dumpfile] "/Users/martin/source/lipsi/generated/Lipsi.vcd"
-[dumpfile_mtime] "Wed Nov  1 10:03:32 2017"
-[dumpfile_size] 2970
+[dumpfile_mtime] "Tue Nov 14 12:06:17 2017"
+[dumpfile_size] 1562
 [savefile] "/Users/martin/source/lipsi/Lipsi.gtkw"
 [timestart] 0
 [size] 1000 600
@@ -24,10 +24,8 @@ Lipsi.pcReg[7:0]
 Lipsi.exitReg
 @22
 Lipsi.accuReg[7:0]
-Lipsi.io_data[7:0]
 @28
 Lipsi.funcReg[2:0]
-Lipsi.stateReg[1:0]
 Lipsi.enaAccuReg
 @200
 -Memory
@@ -39,5 +37,11 @@ Lipsi.mem.io_wrAddr[8:0]
 Lipsi.mem.io_wrData[7:0]
 @28
 Lipsi.mem.io_wrEna
+@200
+-IO
+@22
+Lipsi.io_din[7:0]
+@23
+Lipsi.io_dout[7:0]
 [pattern_trace] 1
 [pattern_trace] 0

@@ -27,7 +27,7 @@ class LipsiCoSim(dut: Lipsi, arg0: String) extends Tester(dut) {
     maxInstructions -= 1
     run = peek(dut.exitReg) == 0 && maxInstructions > 0
   }
-  expect(dut.io.acc, 0, "Accu shall be zero at the end of a test case.\n")
+  expect(dut.accuReg, 0, "Accu shall be zero at the end of a test case.\n")
 }
 
 object LipsiCoSim {
