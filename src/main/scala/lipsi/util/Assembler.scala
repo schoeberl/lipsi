@@ -21,13 +21,23 @@ object Assembler {
     0x82, // st r2
     0x00)
 
+  // collect destination addresses in first pass
+  val symbols = collection.mutable.Map[String, Int]()
+
   def getProgramFix() = prog
 
   def getProgram(prog: String) = assemble(prog)
 
-  def assemble(prog: String) = {
+  def assemble(prog: String): Array[Int] = {
+    assemble(prog, false)
+    assemble(prog, true)
+  }
+
+  def assemble(prog: String, pass2: Boolean): Array[Int] = {
+
     val source = Source.fromFile(prog)
     var program = List[Int]()
+    var pc = 0
 
     def toInt(s: String): Int = {
       if (s.startsWith("0x")) {
@@ -53,8 +63,10 @@ object Assembler {
       val tokens = line.trim.split(" ")
       // println(s"length: ${tokens.length}")
       // tokens.foreach(println)
+      val Pattern = "(.*:)".r
       val instr = tokens(0) match {
         case "#" => // comment
+        case Pattern(l) => if (!pass2) symbols += (l.substring(0, l.length - 1) -> pc)
         case "add" => 0x00 + regNumber(tokens(1))
         case "sub" => 0x10 + regNumber(tokens(1))
         case "adc" => 0x20 + regNumber(tokens(1))
@@ -74,6 +86,9 @@ object Assembler {
         case "st" => 0x80 + regNumber(tokens(1))
         case "ldind" => 0xa0 + regIndirect(tokens(1))
         case "stind" => 0xb0 + regIndirect(tokens(1))
+        case "br" => (0xd0, if (pass2) symbols(tokens(1)) else 0)
+        case "brz" => (0xd2, if (pass2) symbols(tokens(1)) else 0)
+        case "brnz" => (0xd3, if (pass2) symbols(tokens(1)) else 0)
         case "exit" => (0xff)
         case "" => // println("Empty line")
         case t: String => throw new Exception("Assembler error: unknown instruction")
@@ -82,10 +97,14 @@ object Assembler {
       // println(instr)
 
       instr match {
-        case (a: Int) => program = a :: program
+        case (a: Int) => {
+          program = a :: program
+          pc += 1
+        }
         case (a: Int, b: Int) => {
           program = a :: program
           program = b :: program
+          pc += 2
         }
         case _ => // println("Something else")
       }

@@ -20,7 +20,9 @@ Instruction encoding (plus timing):
 1010 rrrr ldind (rx) (3 cc)
 1011 rrrr stind (rx) (2 cc)
 1100 -fff + nnnn nnnn ALU imm (2 cc)
-1101 -ccc + aaaa aaaa br, br cond
+1101 --00 + aaaa aaaa br
+1101 --10 + aaaa aaaa brz
+1101 --11 + aaaa aaaa brnz
 1110 --ff ALU shift
 1111 aaaa IO
 1111 1111 exit for the tester
@@ -42,6 +44,8 @@ class Lipsi(prog: String) extends Module {
   val accuReg = Reg(init = UInt(0, 8))
   val enaAccuReg = Reg(init = Bool(false))
 
+  val enaPcReg = Reg(init = Bool(false))
+
   val funcReg = Reg(init = UInt(0, 3))
   debug(funcReg)
 
@@ -52,6 +56,7 @@ class Lipsi(prog: String) extends Module {
 
   val rdData = mem.io.rdData
 
+  // the following is used?
   val regInstr = Reg(next = rdData)
 
   //  val rdAddr = Mux(selPC, Cat(UInt(0, 1), regPC + UInt(1)),
@@ -71,15 +76,17 @@ class Lipsi(prog: String) extends Module {
   mem.io.wrData := Mux(isCall, pcReg, accuReg)
   mem.io.wrEna := wrEna
 
-  // val isLoad = Bool(false)
-
-  val nextPC = pcReg + UInt(1)
+  val nextPC = UInt()
   // defaults
   wrEna := Bool(false)
   wrAddr := rdData
   rdAddr := Cat(UInt(0, 1), nextPC)
   updPC := Bool(true)
+  nextPC := pcReg + UInt(1)
 
+  when(enaPcReg) {
+    nextPC := rdData
+  }
   when(updPC) {
     pcReg := nextPC
   }
@@ -90,7 +97,19 @@ class Lipsi(prog: String) extends Module {
   val exitReg = Reg(init = Bool(false))
   debug(exitReg)
 
+  val accuZero = Bool()
+  accuZero := Bool(false)
+  when(accuReg === Bits(0)) {
+    accuZero := Bool(true)
+  }
+
+  val doBranch = (rdData(1, 0) === Bits(0)) ||
+    ((rdData(1, 0) === Bits(2)) && accuZero) ||
+    ((rdData(1, 0) === Bits(3)) && !accuZero)
+
   enaAccuReg := Bool(false)
+  enaPcReg := Bool(false)
+
   debug(enaAccuReg)
   switch(stateReg) {
     is(fetch) {
@@ -103,11 +122,6 @@ class Lipsi(prog: String) extends Module {
         enaAccuReg := Bool(true)
         rdAddr(8, 4) := UInt(0x10)
         rdAddr(3, 0) := rdData
-      }
-      // ALU imm
-      when(rdData(7, 4) === Bits(0xc)) {
-        funcReg := rdData(2, 0)
-        enaAccuReg := Bool(true)
       }
       // st rx, is just a single cycle
       when(rdData(7, 4) === Bits(0x8)) {
@@ -128,6 +142,17 @@ class Lipsi(prog: String) extends Module {
         rdAddr(8, 4) := UInt(0x10)
         rdAddr(3, 0) := rdData
         stateReg := stind
+      }
+      // ALU imm
+      when(rdData(7, 4) === Bits(0xc)) {
+        funcReg := rdData(2, 0)
+        enaAccuReg := Bool(true)
+      }
+      // Branch
+      when(rdData(7, 4) === Bits(0xd)) {
+        when(doBranch) {
+          enaPcReg := Bool(true)
+        }
       }
       // exit (for the tester)
       when(rdData === Bits(0xff)) {

@@ -25,6 +25,7 @@ class LipsiSim(asm: String) {
   var delayUpdate = false
   var delayTwoUpdate = false
   var noPcIncr = false
+  var doBranch = false
 
   var run = true
 
@@ -78,7 +79,14 @@ class LipsiSim(asm: String) {
             accuNext = alu(instr & 0x07, mem(pc + 1))
             delayUpdate = true
           }
-          case 0x5 =>
+          case 0x5 => {
+            doBranch = (instr & 0x03) match {
+              case 0x0 => true
+              case 0x2 => accu == 0
+              case 0x3 => accu != 0
+            }
+            delayOne = true
+          }
           case 0x6 =>
           case 0x7 =>
         }
@@ -89,7 +97,12 @@ class LipsiSim(asm: String) {
     if (noPcIncr) {
       noPcIncr = false
     } else {
-      pc += 1
+      if (doBranch && !delayOne) {
+        pc = mem(pc)
+        doBranch = false
+      } else {
+        pc += 1
+      }
     }
     run = pc < prog.length
   }

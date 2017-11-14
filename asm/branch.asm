@@ -1,5 +1,5 @@
 # 
-# general test program
+# branch test program
 #
 
 ldi 0x73
