@@ -222,13 +222,28 @@ class LipsiTop(prog: String) extends Module {
     val dout = UInt(OUTPUT, 8)
     val din = UInt(INPUT, 8)
   }
-  
+
   val resetRegs = Reg(next = !Reg(next = reset))
-  
-  val lipsi = Module(new Lipsi(prog))
-  
-  lipsi.reset := resetRegs
-  io <> lipsi.io
+
+  val many = false
+  val N = 432
+
+  if (many) {
+    val lipsis = new Array[Lipsi](N)
+    for (i <- 0 until N) {
+      lipsis(i) = Module(new Lipsi(prog))
+      lipsis(i).reset := resetRegs
+    }
+    lipsis(0).io.din := io.din
+    io.dout := lipsis(N - 1).io.dout
+    for (i <- 1 until N) lipsis(i).io.din := lipsis(i - 1).io.dout
+    
+  } else {
+    val lipsi = Module(new Lipsi(prog))
+
+    lipsi.reset := resetRegs
+    io <> lipsi.io
+  }
 }
 
 object LipsiMain {

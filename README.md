@@ -52,6 +52,14 @@ make test-cosim
 
 Folder `asm` contains various assembler program. E.g., `echo.asm` reads the keys from
 the FPGA board, adds 1, and puts out the result on the LEDs (on the DE2-115).
+Default IO devices are an 8-bit input port connected to the keys and 8-bit output
+port connected to the LEDs
 
-As usual, have fun,
+To build a 432 cores manycore version of Lipsi, change the value `many` to
+`val many = true` in `LipsiTop`. The cores are then connected in a pipeline.
+The `echo.asm` program can be used to execute 432 additions and show the result
+on the LEDs.
+
+As usual, have fun and feedback is appreciated,
+
 Martin
