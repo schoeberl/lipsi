@@ -5,7 +5,7 @@ SBT = sbt
 # the program
 APP ?= asm/test.asm
 
-lipsi_test:
+test:
 	$(SBT) "test:runMain lipsi.LipsiTester $(APP)"
 
 hw:
@@ -20,11 +20,11 @@ cosim:
 wave:
 	gtkwave generated/Lipsi.vcd Lipsi.gtkw
 
-test:
-	make lipsi_test APP=asm/immop.asm
-	make lipsi_test APP=asm/aluop.asm
-	make lipsi_test APP=asm/ldstind.asm
-	make lipsi_test APP=asm/branch.asm
+test-all:
+	make test APP=asm/immop.asm
+	make test APP=asm/aluop.asm
+	make test APP=asm/ldstind.asm
+	make test APP=asm/branch.asm
 
 test-cosim:
 	make cosim APP=asm/immop.asm

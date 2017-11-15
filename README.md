@@ -23,29 +23,30 @@ The wave form can then be viewed with:
 ```
 make wave
 ```
-The default can be overwritten with the variable `APP` as shown:
+The default program can be overwritten with the variable `APP`:
 ```
-make APP=asm/echo.asm
+make APP=asm/immop.asm
 ```
 
-Verilog that can be synthesized us generated with:
+Lipsi executing the embedded hello world program, blinking and counting LEDs, can be
+generated as follows:
 ```
-make hw
+make hw APP=asm/blink.asm
 ```
 The project contains a Quartus project in folder `quartus`.
 
 All test cases are run with:
 
 ```
-make test
+make test-all
 ```
 The SW simulator of Lipsi is run with:
 ```
 make sim
 ```
 
-The co-simulation with the processor description in hardware and the SW simulator
-are run with:
+The co-simulation (for all tests) with the processor description in hardware and
+the SW simulator are run with:
 ```
 make test-cosim
 ```
