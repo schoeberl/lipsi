@@ -8,7 +8,8 @@
 
 package lipsi
 
-import Chisel._
+import chisel3._
+import chisel3.util._
 
 /*
 
@@ -35,8 +36,8 @@ add, sub, adc, sbb, and, or, xor, ld
 
 class Lipsi(prog: String) extends Module {
   val io = IO(new Bundle {
-    val dout = Output(UInt(width = 8))
-    val din = Input(UInt(width = 8))
+    val dout = Output(UInt(8.W))
+    val din = Input(UInt(8.W))
   })
 
   val pcReg = RegInit(UInt(0, 8))
@@ -46,7 +47,7 @@ class Lipsi(prog: String) extends Module {
   val enaPcReg = RegInit(Bool(false))
 
   val funcReg = RegInit(UInt(0, 3))
-  debug(funcReg)
+  // debug(funcReg) Chisel 2
 
   // IO register
   val outReg = RegInit(UInt(0, 8))
@@ -94,11 +95,11 @@ class Lipsi(prog: String) extends Module {
     pcReg := nextPC
   }
 
-  val fetch :: execute :: stind :: ldind1 :: ldind2 :: exit :: Nil = Enum(UInt(), 6)
+  val fetch :: execute :: stind :: ldind1 :: ldind2 :: exit :: Nil = Enum(6)
   val stateReg = RegInit(fetch)
-  debug(stateReg)
+  // debug(stateReg)
   val exitReg = RegInit(Bool(false))
-  debug(exitReg)
+  // debug(exitReg) Chisel 2
 
   val accuZero = Wire(Bool())
   accuZero := Bool(false)
@@ -114,7 +115,7 @@ class Lipsi(prog: String) extends Module {
   enaPcReg := Bool(false)
   enaIoReg := Bool(false)
 
-  debug(enaAccuReg)
+  // debug(enaAccuReg) Chisel 2
   switch(stateReg) {
     is(fetch) {
       stateReg := execute
@@ -124,27 +125,24 @@ class Lipsi(prog: String) extends Module {
         updPC := Bool(false)
         funcReg := rdData(6, 4)
         enaAccuReg := Bool(true)
-        rdAddr(8, 4) := UInt(0x10)
-        rdAddr(3, 0) := rdData
+        rdAddr := Cat(UInt(0x10), rdData(3, 0))
       }
       // st rx, is just a single cycle
       when(rdData(7, 4) === Bits(0x8)) {
-        wrAddr(7, 4) := UInt(0)
+        wrAddr := Cat(UInt(0), rdData(3, 0))
         wrEna := Bool(true)
         stateReg := fetch
       }
       // ldind
       when(rdData(7, 4) === Bits(0xa)) {
         updPC := Bool(false)
-        rdAddr(8, 4) := UInt(0x10)
-        rdAddr(3, 0) := rdData
+        rdAddr := Cat(UInt(0x10), rdData(3, 0))
         stateReg := ldind1
       }
       // stind
       when(rdData(7, 4) === Bits(0xb)) {
         updPC := Bool(false)
-        rdAddr(8, 4) := UInt(0x10)
-        rdAddr(3, 0) := rdData
+        rdAddr := Cat(UInt(0x10), rdData(3, 0))
         stateReg := stind
       }
       // ALU imm
@@ -180,8 +178,7 @@ class Lipsi(prog: String) extends Module {
       updPC := Bool(false)
       funcReg := Bits(7)
       enaAccuReg := Bool(true)
-      rdAddr(8) := UInt(0x1)
-      rdAddr(7, 0) := rdData
+      rdAddr := Cat(UInt(0x1), rdData)
       stateReg := ldind2
     }
     is(ldind2) {
@@ -192,11 +189,11 @@ class Lipsi(prog: String) extends Module {
     }
   }
 
-  val op = Wire(rdData)
+  val op = rdData
   val res = Wire(UInt())
   res := UInt(0, 8)
 
-  val add :: sub :: adc :: sbb :: and :: or :: xor :: ld :: Nil = Enum(UInt(), 8)
+  val add :: sub :: adc :: sbb :: and :: or :: xor :: ld :: Nil = Enum(8)
   switch(funcReg) {
     is(add) { res := accuReg + op }
     is(sub) { res := accuReg - op }
@@ -219,11 +216,22 @@ class Lipsi(prog: String) extends Module {
 
 class LipsiTop(prog: String) extends Module {
   val io = IO(new Bundle {
-    val dout = Output(UInt(width = 8))
-    val din = Input(UInt(width = 8))
+    val dout = Output(UInt(8.W))
+    val din = Input(UInt(8.W))
   })
 
-  val resetRegs = RegNext(!RegNext(reset))
+  val x = Wire(Bool())
+  x := RegNext(reset)
+  val y = Wire(Bool())
+  y := !x
+
+  val resetRegs = RegNext(y)
+
+  // val resetRegs = RegNext(RegNext(reset))
+
+  // val resetRegs = RegNext(!RegNext(reset))
+
+  // val resetRegs = reset
 
   val many = false
   val N = 432
@@ -249,7 +257,11 @@ class LipsiTop(prog: String) extends Module {
 object LipsiMain {
   def main(args: Array[String]): Unit = {
     println("Generating the Lipsi hardware")
+    chisel3.Driver.execute(Array("--target-dir", "generated"),
+      () => new LipsiTop(args(0)))
+    /* Chisel 2
     chiselMain(Array("--backend", "v", "--targetDir", "generated"),
       () => Module(new LipsiTop(args(0))))
+      */
   }
 }

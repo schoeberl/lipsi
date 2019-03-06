@@ -9,9 +9,10 @@
 package lipsi
 
 import lipsi.sim._
-import Chisel._
+import chisel3._
+import chisel3.iotesters.PeekPokeTester
 
-class LipsiCoSim(dut: Lipsi, arg0: String) extends Tester(dut) {
+class LipsiCoSim(dut: Lipsi, arg0: String) extends PeekPokeTester(dut) {
 
   val lsim = new LipsiSim(arg0)
 
@@ -33,11 +34,16 @@ class LipsiCoSim(dut: Lipsi, arg0: String) extends Tester(dut) {
 object LipsiCoSim {
   def main(args: Array[String]): Unit = {
     println("Co-simulation of Lipsi")
-        
+    iotesters.Driver.execute(Array[String](), () => new Lipsi(args(0))) {
+      c => new LipsiCoSim(c, args(0))
+    }
+
+    /* Chisel 2
     chiselMainTest(Array("--genHarness", "--test", "--backend", "c",
       "--compile", "--vcd", "--targetDir", "generated"),
       () => Module(new Lipsi(args(0)))) {
         f => new LipsiCoSim(f, args(0))
       }
+      */
   }
 }
