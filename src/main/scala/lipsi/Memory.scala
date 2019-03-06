@@ -20,16 +20,17 @@ import Chisel._
  * memory and the instruction ROM table. Shall be substituted by a BlackBox and generated VHDL or Verilog.
  */
 class Memory(prog: String) extends Module {
-  val io = new Bundle {
-    val rdAddr = UInt(INPUT, 9)
-    val rdData = UInt(OUTPUT, 8)
-    val wrEna = Bool(INPUT)
-    val wrData = UInt(INPUT, 8)
-    val wrAddr = UInt(INPUT, 9)
-  }
+  val io = IO(new Bundle {
+    val rdAddr = Input(UInt(width = 9))
+    val rdData = Output(UInt(width = 8))
+    val wrEna = Input(Bool())
+    val wrData = Input(UInt(width = 8))
+    val wrAddr = Input(UInt(width = 9))
+  })
 
-  val regPC = Reg(init = UInt(0, 8))
-  val rdAddrReg = Reg(init = UInt(0, 9), next = io.rdAddr)
+  val regPC = RegInit(UInt(0, 8))
+  val rdAddrReg = RegInit(UInt(0, 9))
+  rdAddrReg := io.rdAddr
 
   val program = Vec(util.Assembler.getProgram(prog).map(Bits(_)))
   val instr = program(rdAddrReg(7, 0))

@@ -34,23 +34,23 @@ add, sub, adc, sbb, and, or, xor, ld
 */
 
 class Lipsi(prog: String) extends Module {
-  val io = new Bundle {
-    val dout = UInt(OUTPUT, 8)
-    val din = UInt(INPUT, 8)
-  }
+  val io = IO(new Bundle {
+    val dout = Output(UInt(width = 8))
+    val din = Input(UInt(width = 8))
+  })
 
-  val pcReg = Reg(init = UInt(0, 8))
-  val accuReg = Reg(init = UInt(0, 8))
-  val enaAccuReg = Reg(init = Bool(false))
+  val pcReg = RegInit(UInt(0, 8))
+  val accuReg = RegInit(UInt(0, 8))
+  val enaAccuReg = RegInit(Bool(false))
 
-  val enaPcReg = Reg(init = Bool(false))
+  val enaPcReg = RegInit(Bool(false))
 
-  val funcReg = Reg(init = UInt(0, 3))
+  val funcReg = RegInit(UInt(0, 3))
   debug(funcReg)
 
   // IO register
-  val outReg = Reg(init = UInt(0, 8))
-  val enaIoReg = Reg(init = Bool(false))
+  val outReg = RegInit(UInt(0, 8))
+  val enaIoReg = RegInit(Bool(false))
 
   val mem = Module(new Memory(prog))
 
@@ -69,17 +69,17 @@ class Lipsi(prog: String) extends Module {
   // Probably, but it should be simple into a fixed register (15))
   val isCall = Bool(false)
 
-  val wrEna = Bool()
-  val wrAddr = UInt()
-  val rdAddr = UInt()
-  val updPC = Bool()
+  val wrEna = Wire(Bool())
+  val wrAddr = Wire(UInt())
+  val rdAddr = Wire(UInt())
+  val updPC = Wire(Bool())
 
   mem.io.rdAddr := rdAddr
   mem.io.wrAddr := Cat(UInt(1, 1), wrAddr(7, 0))
   mem.io.wrData := Mux(isCall, pcReg, accuReg)
   mem.io.wrEna := wrEna
 
-  val nextPC = UInt()
+  val nextPC = Wire(UInt())
   // defaults
   wrEna := Bool(false)
   wrAddr := rdData
@@ -95,12 +95,12 @@ class Lipsi(prog: String) extends Module {
   }
 
   val fetch :: execute :: stind :: ldind1 :: ldind2 :: exit :: Nil = Enum(UInt(), 6)
-  val stateReg = Reg(init = fetch)
+  val stateReg = RegInit(fetch)
   debug(stateReg)
-  val exitReg = Reg(init = Bool(false))
+  val exitReg = RegInit(Bool(false))
   debug(exitReg)
 
-  val accuZero = Bool()
+  val accuZero = Wire(Bool())
   accuZero := Bool(false)
   when(accuReg === Bits(0)) {
     accuZero := Bool(true)
@@ -192,8 +192,8 @@ class Lipsi(prog: String) extends Module {
     }
   }
 
-  val op = rdData
-  val res = UInt()
+  val op = Wire(rdData)
+  val res = Wire(UInt())
   res := UInt(0, 8)
 
   val add :: sub :: adc :: sbb :: and :: or :: xor :: ld :: Nil = Enum(UInt(), 8)
@@ -218,12 +218,12 @@ class Lipsi(prog: String) extends Module {
 }
 
 class LipsiTop(prog: String) extends Module {
-  val io = new Bundle {
-    val dout = UInt(OUTPUT, 8)
-    val din = UInt(INPUT, 8)
-  }
+  val io = IO(new Bundle {
+    val dout = Output(UInt(width = 8))
+    val din = Input(UInt(width = 8))
+  })
 
-  val resetRegs = Reg(next = !Reg(next = reset))
+  val resetRegs = RegNext(!RegNext(reset))
 
   val many = false
   val N = 432

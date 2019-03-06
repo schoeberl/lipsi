@@ -1,14 +1,19 @@
+name := "Lipsi"
 
 scalaVersion := "2.11.7"
 
-// Only needed if not organized according to the sbt standard
-// scalaSource in Compile := baseDirectory.value / "src"
+scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature", "-language:reflectiveCalls")
 
-// This is the latest release from UCB
-// libraryDependencies += "edu.berkeley.cs" %% "chisel" % "latest.release"
+libraryDependencies += scalaVersion("org.scala-lang" % "scala-compiler" % _).value
 
-// use 2.2.30 till VCD issue is fixed
- libraryDependencies += "edu.berkeley.cs" %% "chisel" % "2.2.33"
+resolvers ++= Seq(
+  Resolver.sonatypeRepo("snapshots"),
+  Resolver.sonatypeRepo("releases")
+)
 
-// This is from a locally published version
-// libraryDependencies += "edu.berkeley.cs" %% "chisel" % "2.3-SNAPSHOT"
+// here switch between Chisel 2 and 3
+
+libraryDependencies += "edu.berkeley.cs" %% "chisel" % "2.2.38"
+
+//libraryDependencies += "edu.berkeley.cs" %% "chisel3" % "3.1.2"
+//libraryDependencies += "edu.berkeley.cs" %% "chisel-iotesters" % "1.2.2"
