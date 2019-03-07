@@ -8,7 +8,7 @@
 
 package lipsi
 
-import Chisel._
+import chisel3._
 
 /**
  * The memory for Lipsi.
@@ -21,22 +21,22 @@ import Chisel._
  */
 class Memory(prog: String) extends Module {
   val io = IO(new Bundle {
-    val rdAddr = Input(UInt(width = 9))
-    val rdData = Output(UInt(width = 8))
+    val rdAddr = Input(UInt(9.W))
+    val rdData = Output(UInt(8.W))
     val wrEna = Input(Bool())
-    val wrData = Input(UInt(width = 8))
-    val wrAddr = Input(UInt(width = 9))
+    val wrData = Input(UInt(8.W))
+    val wrAddr = Input(UInt(9.W))
   })
 
-  val regPC = RegInit(UInt(0, 8))
-  val rdAddrReg = RegInit(UInt(0, 9))
+  val regPC = RegInit(0.U(8.W))
+  val rdAddrReg = RegInit(0.U(9.W))
   rdAddrReg := io.rdAddr
 
-  val program = Vec(util.Assembler.getProgram(prog).map(Bits(_)))
+  val program = VecInit(util.Assembler.getProgram(prog).map(_.U))
   val instr = program(rdAddrReg(7, 0))
 
   /* Chisel 2 val mem = Mem(UInt(width = 8), 256, seqRead = true) */
-  val mem = Mem(256, UInt(width = 8))
+  val mem = Mem(256, UInt(8.W))
   val data = mem(rdAddrReg(7, 0))
   when(io.wrEna) {
     mem(io.wrAddr) := io.wrData
