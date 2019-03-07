@@ -115,6 +115,40 @@ class Lipsi(prog: String) extends Module {
   enaPcReg := Bool(false)
   enaIoReg := Bool(false)
 
+  switch(stateReg) {
+    is(fetch) {
+      stateReg := execute
+      // ldind
+      when(io.din(7, 4) === UInt(0xa)) {
+        stateReg := ldind1
+      }
+      // stind
+      when(io.din(7, 4) === UInt(0xb)) {
+        stateReg := stind
+      }
+      when(io.din === UInt(0xf0)) {
+        stateReg := fetch
+      }
+      // exit (for the tester)
+      when(io.din === UInt(0xff)) {
+        stateReg := exit
+      }
+    }
+    is(stind) {
+      stateReg := fetch
+    }
+    is(execute) {
+      stateReg := fetch
+    }
+    is(ldind1) {
+      stateReg := ldind2
+      io.dout := UInt(3)
+    }
+    is(ldind2) {
+      stateReg := fetch
+    }
+  }
+/*
   // debug(enaAccuReg) Chisel 2
   switch(stateReg) {
     is(fetch) {
@@ -127,6 +161,7 @@ class Lipsi(prog: String) extends Module {
         enaAccuReg := Bool(true)
         rdAddr := Cat(UInt(0x10), rdData(3, 0))
       }
+
       // st rx, is just a single cycle
       when(rdData(7, 4) === Bits(0x8)) {
         wrAddr := Cat(UInt(0), rdData(3, 0))
@@ -188,6 +223,8 @@ class Lipsi(prog: String) extends Module {
       exitReg := Bool(true)
     }
   }
+  */
+
 
   val op = rdData
   val res = Wire(UInt())
