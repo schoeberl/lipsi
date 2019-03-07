@@ -34,11 +34,31 @@ add, sub, adc, sbb, and, or, xor, ld
 
 */
 
+class DebugData extends Bundle {
+  val pc = UInt(8.W)
+  val accu = UInt(8.W)
+  val exit = Bool()
+}
+
 class Lipsi(prog: String) extends Module {
   val io = IO(new Bundle {
     val dout = Output(UInt(8.W))
     val din = Input(UInt(8.W))
+    val dbg = Output(new DebugData)
   })
+
+  // FIXME: this and the position is a workaround for a FIRRTL bug where stateReg was
+  // declared after use
+  // val fetch :: execute :: stind :: ldind1 :: ldind2 :: exit :: Nil = Enum(6)
+  val fetch = 0.U
+  val execute = 1.U
+  val stind = 2.U
+  val ldind1 = 3.U
+  val ldind2 = 4.U
+  val exit = 5.U
+
+  val stateReg = RegInit(fetch)
+  // debug(stateReg)
 
   val pcReg = RegInit(UInt(0, 8))
   val accuReg = RegInit(UInt(0, 8))
@@ -95,9 +115,6 @@ class Lipsi(prog: String) extends Module {
     pcReg := nextPC
   }
 
-  val fetch :: execute :: stind :: ldind1 :: ldind2 :: exit :: Nil = Enum(6)
-  val stateReg = RegInit(fetch)
-  // debug(stateReg)
   val exitReg = RegInit(Bool(false))
   // debug(exitReg) Chisel 2
 
@@ -212,6 +229,9 @@ class Lipsi(prog: String) extends Module {
   }
 
   io.dout := outReg
+  io.dbg.accu := accuReg
+  io.dbg.pc := pcReg
+  io.dbg.exit := exitReg
 }
 
 class LipsiTop(prog: String) extends Module {
