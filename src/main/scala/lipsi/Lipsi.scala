@@ -39,7 +39,16 @@ class Lipsi(prog: String) extends Module {
     val dout = Output(UInt(8.W))
     val din = Input(UInt(8.W))
   })
+  // val fetch :: execute :: stind :: ldind1 :: ldind2 :: exit :: Nil = Enum(6)
+  val fetch = 0.U
+  val execute = 1.U
+  val stind = 2.U
+  val ldind1 = 3.U
+  val ldind2 = 4.U
+  val exit = 5.U
 
+  val stateReg = RegInit(fetch)
+  // debug(stateReg)
   val pcReg = RegInit(UInt(0, 8))
   val accuReg = RegInit(UInt(0, 8))
   val enaAccuReg = RegInit(Bool(false))
@@ -95,9 +104,7 @@ class Lipsi(prog: String) extends Module {
     pcReg := nextPC
   }
 
-  val fetch :: execute :: stind :: ldind1 :: ldind2 :: exit :: Nil = Enum(6)
-  val stateReg = RegInit(fetch)
-  // debug(stateReg)
+
   val exitReg = RegInit(Bool(false))
   // debug(exitReg) Chisel 2
 
@@ -115,40 +122,6 @@ class Lipsi(prog: String) extends Module {
   enaPcReg := Bool(false)
   enaIoReg := Bool(false)
 
-  switch(stateReg) {
-    is(fetch) {
-      stateReg := execute
-      // ldind
-      when(io.din(7, 4) === UInt(0xa)) {
-        stateReg := ldind1
-      }
-      // stind
-      when(io.din(7, 4) === UInt(0xb)) {
-        stateReg := stind
-      }
-      when(io.din === UInt(0xf0)) {
-        stateReg := fetch
-      }
-      // exit (for the tester)
-      when(io.din === UInt(0xff)) {
-        stateReg := exit
-      }
-    }
-    is(stind) {
-      stateReg := fetch
-    }
-    is(execute) {
-      stateReg := fetch
-    }
-    is(ldind1) {
-      stateReg := ldind2
-      io.dout := UInt(3)
-    }
-    is(ldind2) {
-      stateReg := fetch
-    }
-  }
-/*
   // debug(enaAccuReg) Chisel 2
   switch(stateReg) {
     is(fetch) {
@@ -223,7 +196,6 @@ class Lipsi(prog: String) extends Module {
       exitReg := Bool(true)
     }
   }
-  */
 
 
   val op = rdData
