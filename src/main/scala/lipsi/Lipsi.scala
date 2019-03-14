@@ -225,6 +225,7 @@ class LipsiTop(prog: String) extends Module {
   val io = IO(new Bundle {
     val dout = Output(UInt(8.W))
     val din = Input(UInt(8.W))
+    val dbg = Output(new DebugData)
   })
 
   val x = Wire(Bool())
