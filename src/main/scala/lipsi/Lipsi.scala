@@ -47,19 +47,6 @@ class Lipsi(prog: String) extends Module {
     val dbg = Output(new DebugData)
   })
 
-  // FIXME: this and the position is a workaround for a FIRRTL bug where stateReg was
-  // declared after use
-  // val fetch :: execute :: stind :: ldind1 :: ldind2 :: exit :: Nil = Enum(6)
-  val fetch = 0.U
-  val execute = 1.U
-  val stind = 2.U
-  val ldind1 = 3.U
-  val ldind2 = 4.U
-  val exit = 5.U
-
-  val stateReg = RegInit(fetch)
-  // debug(stateReg)
-
   val pcReg = RegInit(0.U(8.W))
   val accuReg = RegInit(0.U(8.W))
   val enaAccuReg = RegInit(false.B)
@@ -114,6 +101,10 @@ class Lipsi(prog: String) extends Module {
   when(updPC) {
     pcReg := nextPC
   }
+
+  val fetch :: execute :: stind :: ldind1 :: ldind2 :: exit :: Nil = Enum(6)
+  val stateReg = RegInit(fetch)
+  // debug(stateReg)
 
   val exitReg = RegInit(false.B)
   // debug(exitReg) Chisel 2
