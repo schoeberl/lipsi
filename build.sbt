@@ -1,6 +1,8 @@
 name := "Lipsi"
 
-scalaVersion := "2.11.7"
+scalaVersion := "2.12.8"
+  
+scalacOptions := Seq("-Xsource:2.11")
 
 scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature", "-language:reflectiveCalls")
 
@@ -15,5 +17,5 @@ resolvers ++= Seq(
 
 //libraryDependencies += "edu.berkeley.cs" %% "chisel" % "2.2.38"
 
-libraryDependencies += "edu.berkeley.cs" %% "chisel3" % "3.1.3"
-libraryDependencies += "edu.berkeley.cs" %% "chisel-iotesters" % "1.2.2"
+//libraryDependencies += "edu.berkeley.cs" %% "chisel3" % "3.1.3"
+libraryDependencies += "edu.berkeley.cs" %% "chisel-iotesters" % "1.4.0"
