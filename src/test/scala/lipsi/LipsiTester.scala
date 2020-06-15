@@ -34,12 +34,9 @@ object LipsiTester {
   def main(args: Array[String]): Unit = {
     println("Testing Lipsi")
      iotesters.Driver.execute(
-       Array("--generate-vcd-output",
-         "on",
-         "--target-dir",
-         "generated",
-         "--top-name",
-         "Lipsi"),
+       Array("--generate-vcd-output", "on",
+         "--target-dir", "generated",
+         "--top-name", "Lipsi"),
        () => new Lipsi(args(0))) {
       c => new LipsiTester(c)
     }
