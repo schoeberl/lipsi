@@ -9,6 +9,7 @@
 package lipsi
 
 import chisel3._
+import chisel3.stage.{ChiselStage, ChiselGeneratorAnnotation}
 import chisel3.util._
 
 /*
@@ -257,15 +258,16 @@ class LipsiTop(prog: String) extends Module {
     val lipsi = Module(new Lipsi(prog))
 
     lipsi.reset := resetRegs
-    io <> lipsi.io
+    io.dout <> lipsi.io.dout
+    io.din <> lipsi.io.din
   }
 }
 
 object LipsiMain {
   def main(args: Array[String]): Unit = {
     println("Generating the Lipsi hardware")
-    chisel3.Driver.execute(Array("--target-dir", "generated"),
-      () => new LipsiTop(args(0)))
+    (new chisel3.stage.ChiselStage).execute(Array("--target-dir", "generated"),
+      Seq(ChiselGeneratorAnnotation(() => new LipsiTop(args(0)))))
     /* Chisel 2
     chiselMain(Array("--backend", "v", "--targetDir", "generated"),
       () => Module(new LipsiTop(args(0))))

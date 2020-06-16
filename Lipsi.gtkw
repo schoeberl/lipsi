@@ -2,10 +2,10 @@
 [*] GTKWave Analyzer v3.3.73 (w)1999-2016 BSI
 [*] Tue Nov 14 12:06:46 2017
 [*]
-[dumpfile] "/Users/martin/source/lipsi/generated/Lipsi.vcd"
+[dumpfile] "./generated/Lipsi.vcd"
 [dumpfile_mtime] "Tue Nov 14 12:06:17 2017"
 [dumpfile_size] 1562
-[savefile] "/Users/martin/source/lipsi/Lipsi.gtkw"
+[savefile] "./Lipsi.gtkw"
 [timestart] 0
 [size] 1000 600
 [pos] -1 -1
