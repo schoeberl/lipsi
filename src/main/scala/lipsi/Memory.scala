@@ -9,6 +9,7 @@
 package lipsi
 
 import chisel3._
+import lipsi.util._
 
 /**
  * The memory for Lipsi.
@@ -32,7 +33,7 @@ class Memory(prog: String) extends Module {
   val rdAddrReg = RegInit(0.U(9.W))
   rdAddrReg := io.rdAddr
 
-  val program = VecInit(util.Assembler.getProgram(prog).map(_.U))
+  val program = VecInit(Assembler.getProgram(prog).map(_.U))
   val instr = program(rdAddrReg(7, 0))
 
   /* Chisel 2 val mem = Mem(UInt(width = 8), 256, seqRead = true) */
