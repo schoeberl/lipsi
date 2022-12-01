@@ -41,7 +41,7 @@ class DebugData extends Bundle {
   val exit = Bool()
 }
 
-class Lipsi(prog: String, debug : Boolean = false ) extends Module {
+class Lipsi(prog: String, val debug : Boolean = false ) extends Module {
   val io = IO(new Bundle {
     val dout = Output(UInt(8.W))
     val din = Input(UInt(8.W))
@@ -227,7 +227,7 @@ class Lipsi(prog: String, debug : Boolean = false ) extends Module {
   
 }
 
-class LipsiTop(prog: String, debug : Boolean = false) extends Module {
+class LipsiTop(prog: String, val debug : Boolean = false) extends Module {
   val io = IO(new Bundle {
     val dout = Output(UInt(8.W))
     val din = Input(UInt(8.W))
