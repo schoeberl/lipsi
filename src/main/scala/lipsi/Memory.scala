@@ -37,7 +37,8 @@ class Memory(prog: String) extends Module {
   val instr = program(rdAddrReg(7, 0))
 
   /* Chisel 2 val mem = Mem(UInt(width = 8), 256, seqRead = true) */
-  val mem = Mem(256, UInt(8.W))
+//  val mem = Mem(256, UInt(8.W))
+  val mem = Mem(4, UInt(8.W))
   val data = mem(rdAddrReg(7, 0))
   when(io.wrEna) {
     mem(io.wrAddr) := io.wrData
