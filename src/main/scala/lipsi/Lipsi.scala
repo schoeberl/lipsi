@@ -41,12 +41,14 @@ class DebugData extends Bundle {
   val exit = Bool()
 }
 
-class Lipsi(prog: String) extends Module {
+class Lipsi(prog: String, val debug : Boolean = false ) extends Module {
   val io = IO(new Bundle {
     val dout = Output(UInt(8.W))
     val din = Input(UInt(8.W))
-    val dbg = Output(new DebugData)
+    val dbg = if (debug) Some(Output(new DebugData)) else None
   })
+
+  
 
   val pcReg = RegInit(0.U(8.W))
   val accuReg = RegInit(0.U(8.W))
@@ -217,16 +219,22 @@ class Lipsi(prog: String) extends Module {
   }
 
   io.dout := outReg
-  io.dbg.accu := accuReg
-  io.dbg.pc := pcReg
-  io.dbg.exit := exitReg
+  if (debug) {
+    io.dbg.get.accu := accuReg
+    io.dbg.get.pc := pcReg
+    io.dbg.get.exit := exitReg
+  }
+  
 }
 
-class LipsiTop(prog: String) extends Module {
+class LipsiTop(prog: String, val debug : Boolean = false) extends Module {
   val io = IO(new Bundle {
     val dout = Output(UInt(8.W))
     val din = Input(UInt(8.W))
+    val dbg = if (debug) Some(Output(new DebugData)) else None
   })
+
+  
 
   val x = Wire(Bool())
   x := RegNext(reset)
@@ -256,6 +264,11 @@ class LipsiTop(prog: String) extends Module {
     
   } else {
     val lipsi = Module(new Lipsi(prog))
+
+      if (debug) {
+        io.dbg.get <> lipsi.io.dbg.get
+      }
+
 
     lipsi.reset := resetRegs
     io.dout <> lipsi.io.dout
