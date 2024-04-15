@@ -40,7 +40,7 @@ class LipsiCoSim(dut: Lipsi, arg0: String) extends PeekPokeTester(dut) {
 object LipsiCoSim {
   def main(args: Array[String]): Unit = {
     println("Co-simulation of Lipsi")
-    iotesters.Driver.execute(Array[String](), () => new Lipsi(args(0), false)) {
+    iotesters.Driver.execute(Array[String](), () => new Lipsi(args(0), debug = false)) {
       c => new LipsiCoSim(c, args(0))
     }
 

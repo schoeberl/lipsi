@@ -20,7 +20,7 @@ import lipsi.util._
  * As we cannot express initialized memory in Chisel (yet) we have a multiplexer between
  * memory and the instruction ROM table. Shall be substituted by a BlackBox and generated VHDL or Verilog.
  */
-class Memory(prog: String) extends Module {
+class Memory(prog: String, size: Int) extends Module {
   val io = IO(new Bundle {
     val rdAddr = Input(UInt(9.W))
     val rdData = Output(UInt(8.W))
@@ -37,8 +37,7 @@ class Memory(prog: String) extends Module {
   val instr = program(rdAddrReg(7, 0))
 
   /* Chisel 2 val mem = Mem(UInt(width = 8), 256, seqRead = true) */
-//  val mem = Mem(256, UInt(8.W))
-  val mem = Mem(4, UInt(8.W))
+  val mem = Mem(size, UInt(8.W))
   val data = mem(rdAddrReg(7, 0))
   when(io.wrEna) {
     mem(io.wrAddr) := io.wrData

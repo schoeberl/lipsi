@@ -41,7 +41,7 @@ class DebugData extends Bundle {
   val exit = Bool()
 }
 
-class Lipsi(prog: String, val debug : Boolean = false ) extends Module {
+class Lipsi(prog: String, val memSize: Int = 256, val debug: Boolean = false ) extends Module {
   val io = IO(new Bundle {
     val dout = Output(UInt(8.W))
     val din = Input(UInt(8.W))
@@ -63,7 +63,7 @@ class Lipsi(prog: String, val debug : Boolean = false ) extends Module {
   val outReg = RegInit(0.U(8.W))
   val enaIoReg = RegInit(false.B)
 
-  val mem = Module(new Memory(prog))
+  val mem = Module(new Memory(prog, memSize))
 
   //  val selPC = Bool(true)
   //  val selData = Bool(false)

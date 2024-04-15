@@ -41,7 +41,7 @@ object LipsiTester {
        Array("--generate-vcd-output", "on",
          "--target-dir", "generated",
          "--top-name", "Lipsi"),
-       () => new Lipsi(args(0), false)) {
+       () => new Lipsi(args(0), debug = false)) {
       c => new LipsiTester(c)
     }
   }
