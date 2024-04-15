@@ -18,6 +18,11 @@ Chisel/Scala and combined in a single program.
 Chisel made it possible that the design of all of the above took less than
 [14 hours](log.md).
 
+## Tapeout
+
+The Lipsi processor is beeing taped out in the [with Tiny Tapeout](https://github.com/schoeberl/tt06-lipsi).
+See a rendering of the actual [GDS II](https://schoeberl.github.io/tt06-lipsi/) file.
+
 ## Getting Started
 
 You need `sbt` and a `JVM` installed. Scala and Chisel are downloaded when
